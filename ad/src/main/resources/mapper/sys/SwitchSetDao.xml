@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.SwitchSetDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.SwitchSetEntity" id="switchSetMap">
+        <result property="id" column="id"/>
+        <result property="week" column="week"/>
+        <result property="openTime" column="open_time"/>
+        <result property="closeTime" column="close_time"/>
+        <result property="did" column="did"/>
+    </resultMap>
+
+    <select id="selectByDeviceOntime" resultType="com.shengvideo.modules.sys.entity.SwitchSetEntity">
+        select * from switch_set s
+        <where>
+            <if test="did != null">
+                and s.did=#{did}
+            </if>
+            <if test="ontime != null">
+                and FIND_IN_SET(DAYOFWEEK(NOW())-1, WEEK)
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteByDevice" >
+        delete from switch_set where did = #{value}
+    </delete>
+
+</mapper>

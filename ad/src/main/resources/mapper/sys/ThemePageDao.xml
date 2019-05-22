@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.ThemePageDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.ThemePageEntity" id="themePageMap">
+        <result property="id" column="id"/>
+        <result property="tid" column="tid"/>
+        <result property="music" column="music"/>
+        <result property="duration" column="duration"/>
+        <result property="mid" column="mid"/>
+        <collection property="elements"
+                    column="id"
+                    ofType="com.shengvideo.modules.sys.entity.ElementEntity"
+                    select="com.shengvideo.modules.sys.dao.ElementDao.findByPid">
+        </collection>
+    </resultMap>
+    <select id="findByTid" parameterType="java.lang.Long"  resultMap="themePageMap">
+        select *
+        from theme_page
+        where tid = #{value}
+    </select>
+
+    <select id="delByTid" parameterType="java.lang.Long" >
+        delete from theme_page where tid = #{value}
+    </select>
+</mapper>

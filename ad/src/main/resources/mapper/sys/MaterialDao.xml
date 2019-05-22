@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.MaterialDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.MaterialEntity" id="materialMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="cid" column="cid"/>
+        <result property="fileName" column="file_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="packageName" column="package_name"/>
+        <result property="createUser" column="create_user"/>
+        <result property="createTime" column="create_time"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="checkStatus" column="check_status"/>
+    </resultMap>
+    <select id="list" resultType="com.shengvideo.modules.sys.entity.MaterialEntity">
+        SELECT m.*,
+        u.username as uName,
+        c.name as cName
+        FROM
+        material m
+        LEFT JOIN sys_user u ON u.user_id = m.create_user
+        LEFT JOIN material_class c ON c.id = m.cid
+        <where>
+            <if test="cid != null">
+                and cid in (SELECT id FROM material_class WHERE FIND_IN_SET(id, getMtChild(#{cid})))
+            </if>
+            <if test="createUser !=null and createUser != ''">
+                AND create_user = #{createUser}
+            </if>
+            <if test="checkStatus !=null and checkStatus != ''">
+                AND check_status = #{checkStatus}
+            </if>
+            <if test="type !=null and type != ''">
+                AND type = #{type}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectSize" resultType="long">
+        select IFNULL(sum(file_size),0)
+        FROM material
+        <where>
+          <if test="type != null">
+              and type = #{type}
+          </if>
+        </where>
+    </select>
+
+</mapper>

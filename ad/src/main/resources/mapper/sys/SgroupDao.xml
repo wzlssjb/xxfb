@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.SgroupDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.SgroupEntity" id="sgroupMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="defaltGroup" column="defalt_group"/>
+    </resultMap>
+
+
+    <!--<select id="queryByRoutId" resultType="com.shengvideo.modules.sys.entity.SgroupEntity">-->
+      <!--select * from stb_group where route_id = #{route_id}-->
+    <!--</select>-->
+
+    <select id="queryByParent" resultType="com.shengvideo.modules.sys.entity.SgroupEntity">
+        select * from stb_group where parent_id = #{value} order by id desc
+    </select>
+
+    <delete id="deleteGroupId">
+        delete from stb_group where id in (SELECT id FROM stb_group WHERE FIND_IN_SET(id, getStbGroupChild(#{id})))
+    </delete>
+</mapper>

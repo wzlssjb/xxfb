@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.PublishDeviceThemeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.PublishDeviceThemeEntity" id="publishDeviceThemeMap">
+        <result property="id" column="id"/>
+        <result property="pid" column="pid"/>
+        <result property="did" column="did"/>
+        <result property="tid" column="tid"/>
+        <result property="status" column="status"/>
+        <result property="synchronize" column="synchronize"/>
+    </resultMap>
+    <update id="subPlay">
+        update publish_device_theme set status = 0 where tid in
+        <foreach item="id" collection="tid" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and did in
+        <foreach item="id" collection="did" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectOnCount" resultType="int">
+        select count(*) from publish_device_theme where pid = #{pid} and did = #{did} and status = 1
+    </select>
+
+    <select id="pidList" resultType="java.lang.Long">
+        select pid
+        from publish_device_theme
+        where
+        tid in
+        <foreach item="id" collection="tid" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and did in
+        <foreach item="id" collection="did" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        group by pid
+    </select>
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.ElementDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.ElementEntity" id="elementMap">
+        <result property="id" column="id"/>
+        <result property="pid" column="pid"/>
+        <result property="type" column="type"/>
+        <result property="imgSrc" column="img_src"/>
+        <result property="videoSrc" column="video_src"/>
+        <result property="left" column="left"/>
+        <result property="top" column="top"/>
+        <result property="width" column="width"/>
+        <result property="height" column="height"/>
+        <result property="lineHeight" column="line_height"/>
+        <result property="animatedName" column="animated_name"/>
+        <result property="duration" column="duration"/>
+        <result property="delay" column="delay"/>
+        <result property="playing" column="playing"/>
+        <result property="loop" column="loop"/>
+        <result property="opacity" column="opacity"/>
+        <result property="transform" column="transform"/>
+        <result property="text" column="text"/>
+        <result property="textAlign" column="text_align"/>
+        <result property="iconKey" column="icon_key"/>
+        <result property="bg" column="bg"/>
+        <result property="fontSize" column="font_size"/>
+        <result property="fontFamily" column="font_family"/>
+        <result property="fontWeight" column="font_weight"/>
+        <result property="color" column="color"/>
+        <result property="zindex" column="zindex"/>
+        <result property="mid" column="mid"/>
+        <result property="extend" column="extend"/>
+        <result property="stretch" column="stretch"/>
+    </resultMap>
+
+    <select id="findByPid" parameterType="java.lang.Long"  resultMap="elementMap">
+        select *
+        from element
+        where pid = #{value}
+        order by zindex
+    </select>
+
+    <select id="delByPid" parameterType="java.lang.Long" >
+        delete from element where pid = #{value}
+    </select>
+</mapper>

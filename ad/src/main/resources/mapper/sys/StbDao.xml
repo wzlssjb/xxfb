@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.StbDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.StbEntity" id="stbMap">
+        <result property="id" column="id"/>
+        <result property="stbGroupId" column="stb_group_id"/>
+        <result property="name" column="name"/>
+        <result property="mac" column="mac"/>
+        <result property="programId" column="program_id"/>
+        <result property="ipaddress" column="ipAddress"/>
+        <result property="screenPic" column="screen_pic"/>
+        <result property="voiceSet" column="voice_set"/>
+        <result property="switchStatus" column="switch_status"/>
+        <result property="onlineStatus" column="online_status" />
+        <result property="physicsHeight" column="physics_height"/>
+        <result property="physicsWidth" column="physics_width"/>
+        <result property="width" column="width"/>
+        <result property="height" column="height"/>
+        <result property="version" column="version"/>
+        <result property="ram" column="ram"/>
+    </resultMap>
+
+
+
+    <select id="list" resultType="com.shengvideo.modules.sys.entity.StbEntity">
+        SELECT s.*,
+        g.name as groupName
+        FROM
+        stb s
+        LEFT JOIN stb_group g ON g.id = s.stb_group_id
+        <where>
+            <if test="name != null and name != ''">
+                and s.name like '%${name }%'
+            </if>
+            <if test="mac != null and mac != ''">
+                and s.mac like '%${mac }%'
+            </if>
+            <if test="switchStatus != null and switchStatus !=''">
+                and s.switch_status = #{switchStatus }
+            </if>
+            <if test="onlineStatus != null and onlineStatus !=''">
+                and s.online_status = #{onlineStatus }
+            </if>
+
+            <if test="stb_group_id != null and stb_group_id != 0">
+              and stb_group_id in (SELECT id FROM stb_group WHERE FIND_IN_SET(id, getStbGroupChild(#{stb_group_id})))
+            </if>
+            <if test="width != null and width !=''">
+                and s.width = #{width }
+            </if>
+            <if test="height != null and height !=''">
+                and s.height = #{height }
+            </if>
+        </where>
+        order by online_status desc, s.id desc
+    </select>
+
+    <select id="resolution" resultType="com.shengvideo.modules.sys.vo.OpVo">
+        select width,height from stb
+        where width is not null and height is not null
+        group by width,height
+        order by width
+    </select>
+    <select id="selectCount" resultType="int">
+        select count(*)
+        from stb
+        <where>
+            <if test="switch_status != null">
+              and switch_status = #{switch_status}
+            </if>
+            <if test="online_status != null">
+                and online_status = #{online_status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectCountByGroup" resultType="int">
+        select count(*)
+        from stb s
+        where  s.stb_group_id in (SELECT id FROM stb_group WHERE FIND_IN_SET(id, getStbGroupChild(#{stb_group_id})))
+    </select>
+
+    <!-- 根据key，查询value -->
+    <select id="findByMac" parameterType="string" resultType="com.shengvideo.modules.sys.entity.StbEntity">
+        select * from stb where mac = #{mac}
+    </select>
+
+    <select id="findById" resultType="com.shengvideo.modules.sys.entity.StbEntity">
+        select *,
+                   (select name from stb_group where stb_group.id = stb.stb_group_id) as groupName,
+                   (select name from theme where theme.id = stb.program_id ) as programName
+        from stb
+        where id = #{value}
+    </select>
+
+    <!-- 根据key，查询value -->
+    <select id="findStbSite" resultType="com.shengvideo.modules.sys.entity.StbEntity">
+       SELECT s.*,
+        user.username as createName,
+        g.name as groupName
+        FROM
+        stb s
+        LEFT JOIN stb_group g ON g.id = s.stb_group_id
+
+    </select>
+
+    <select id="findByPublish" resultType="com.shengvideo.modules.sys.entity.StbEntity">
+        select *
+        from stb
+        where id in (select did from ad.publish_device where pid = #{value})
+    </select>
+
+
+
+    <update id="updateVol">
+        update stb set voice_set = #{vol} where id in
+        <foreach item="id" collection="dids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    <!--删除分组，释放终端-->
+    <update id="deleteGroupId">
+        update stb set stb_group_id = NULL where id in
+        (SELECT id FROM stb_group WHERE FIND_IN_SET(id, getStbGroupChild(#{id})))
+    </update>
+
+    <update id="initOnline" >
+        update stb set online_status = 0
+    </update>
+</mapper>

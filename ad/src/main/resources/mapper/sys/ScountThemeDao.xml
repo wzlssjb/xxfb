@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.ScountThemeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.ScountThemeEntity" id="scountThemeMap">
+        <result property="id" column="id"/>
+        <result property="themeId" column="theme_id"/>
+        <result property="stbId" column="stb_id"/>
+        <result property="playTime" column="play_time"/>
+    </resultMap>
+
+    <select id="list" resultType="com.shengvideo.modules.sys.entity.ScountThemeEntity">
+        SELECT s.*,
+        s1.mac as mac,
+        t.title as themeName,
+        COUNT(theme_id) as count,
+        <if test="groupBy == 1">
+            DATE_FORMAT(play_time,'%Y-%m-%d') AS groupTime
+        </if>
+        <if test="groupBy == 2">
+            DATE_FORMAT(play_time,'%Y年-第%u周') AS groupTime
+        </if>
+        <if test="groupBy == 3">
+            DATE_FORMAT(play_time,'%Y年-%m月份') AS groupTime
+        </if>
+        FROM
+        stb_count_theme s
+        LEFT JOIN stb s1 ON s.stb_id = s1.id
+        LEFT JOIN theme t ON s.theme_id = t.id
+        <where>
+            <if test="mac != null and mac != ''">
+                and s1.mac = #{mac }
+            </if>
+            <if test="themeName != null and themeName !=''">
+                and t.title = #{themeName }
+            </if>
+            <if test="startTime != null and startTime !=''">
+                and s.play_time &gt; #{startTime }
+            </if>
+            <if test="endTime != null and endTime !=''">
+                and s.play_time &lt; #{endTime }
+            </if>
+        </where>
+        GROUP BY theme_id,stb_id, groupTime ORDER BY groupTime desc,count DESC
+    </select>
+
+    <select id="listByTheme" resultType="com.shengvideo.modules.sys.entity.ScountThemeEntity">
+        SELECT s.*,
+        t.title as themeName,
+        COUNT(theme_id) as count,
+        <if test="groupBy == 1">
+            DATE_FORMAT(play_time,'%Y-%m-%d') AS groupTime
+        </if>
+        <if test="groupBy == 2">
+            DATE_FORMAT(play_time,'%Y年-第%u周') AS groupTime
+        </if>
+        <if test="groupBy == 3">
+            DATE_FORMAT(play_time,'%Y年-%m月份') AS groupTime
+        </if>
+        FROM
+        stb_count_theme s
+        LEFT JOIN theme t ON s.theme_id = t.id
+        <where>
+            <if test="mac != null and mac != ''">
+                and s1.mac = #{mac }
+            </if>
+            <if test="themeName != null and themeName !=''">
+                and t.title = #{themeName }
+            </if>
+            <if test="startTime != null and startTime !=''">
+                and s.play_time &gt; #{startTime }
+            </if>
+            <if test="endTime != null and endTime !=''">
+                and s.play_time &lt; #{endTime }
+            </if>
+        </where>
+        GROUP BY theme_id,groupTime ORDER BY s.play_time desc,count DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.ThemeDao">
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.ThemeEntity" id="themeMap">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="type" column="type"/>
+        <result property="canvasHeight" column="canvas_height"/>
+        <result property="canvasWidth" column="canvas_width"/>
+        <result property="music" column="music"/>
+        <collection property="pages"
+                    column="id"
+                    ofType="com.shengvideo.modules.sys.entity.ThemePageEntity"
+                    select="com.shengvideo.modules.sys.dao.ThemePageDao.findByTid">
+        </collection>
+    </resultMap>
+
+    <select id="list" resultMap="themeMap">
+        select * from theme
+        <where>
+            type = 0
+            <if test="title != null">
+                and title like '%${title}%'
+            </if>
+            <if test="cid != null">
+                and cid = #{cid}
+            </if>
+        </where>
+    </select>
+
+    <select id="findById" resultMap="themeMap">
+        select *
+        from theme
+        where id = #{value}
+    </select>
+
+    <select id="findByPublish" resultMap="themeMap">
+        select *
+        from theme
+        where id in (select tid from publish_theme where pid = #{value})
+    </select>
+
+    <select id="findByDevices" resultType="com.shengvideo.modules.sys.entity.ThemeEntity">
+        select *
+        from theme
+        where id in (select tid from publish_device_theme where  did in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and status = 1
+        )
+    </select>
+    <select id="findByPublishAndDevice" resultMap="themeMap">
+        select *
+        from theme
+        where id in (select tid from publish_device_theme where pid = #{pid} and did = #{did}
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        )
+    </select>
+</mapper>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.ScountMaterialDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.ScountMaterialEntity" id="scountMaterialMap">
+        <result property="id" column="id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="stbId" column="stb_id"/>
+        <result property="playTime" column="play_time"/>
+    </resultMap>
+
+    <select id="list" resultType="com.shengvideo.modules.sys.entity.ScountMaterialEntity">
+        SELECT s.*,
+        s1.mac as mac,
+        m.name as materialName,
+        COUNT(material_id) as count,
+        <if test="groupBy == 1">
+          DATE_FORMAT(play_time,'%Y-%m-%d') AS groupTime
+        </if>
+        <if test="groupBy == 2">
+            DATE_FORMAT(play_time,'%Y年-第%u周') AS groupTime
+        </if>
+        <if test="groupBy == 3">
+            DATE_FORMAT(play_time,'%Y年-%m月份') AS groupTime
+        </if>
+        FROM
+        stb_count_material s
+        LEFT JOIN stb s1 ON s.stb_id = s1.id
+        LEFT JOIN material m ON s.material_id = m.id
+        <where>
+            <if test="mac != null and mac != ''">
+                and s1.mac = #{mac }
+            </if>
+            <if test="materialName != null and materialName !=''">
+                and m.name = #{materialName }
+            </if>
+            <if test="startTime != null and startTime !=''">
+                and s.play_time &gt; #{startTime }
+            </if>
+            <if test="endTime != null and endTime !=''">
+                and s.play_time &lt; #{endTime }
+            </if>
+        </where>
+        GROUP BY material_id,stb_id, groupTime  ORDER BY groupTime DESC
+    </select>
+
+    <select id="listByMaterial" resultType="com.shengvideo.modules.sys.entity.ScountMaterialEntity">
+        SELECT s.*,
+        m.name as materialName,
+        COUNT(material_id) as count,
+        <if test="groupBy == 1">
+            DATE_FORMAT(play_time,'%Y-%m-%d') AS groupTime
+        </if>
+        <if test="groupBy == 2">
+            DATE_FORMAT(play_time,'%Y年-第%u周') AS groupTime
+        </if>
+        <if test="groupBy == 3">
+            DATE_FORMAT(play_time,'%Y年-%m月份') AS groupTime
+        </if>
+        FROM
+        stb_count_material s
+        LEFT JOIN material m ON s.material_id = m.id
+        <where>
+            <if test="materialName != null and materialName !=''">
+                and m.name = #{materialName }
+            </if>
+            <if test="startTime != null and startTime !=''">
+                and s.play_time &gt; #{startTime }
+            </if>
+            <if test="endTime != null and endTime !=''">
+                and s.play_time &lt; #{endTime }
+            </if>
+        </where>
+        GROUP BY material_id,stb_id, groupTime  ORDER BY play_time desc ,count DESC
+    </select>
+
+
+</mapper>

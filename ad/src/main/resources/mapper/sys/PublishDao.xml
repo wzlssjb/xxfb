@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.PublishDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.PublishEntity" id="publishMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="createTime" column="create_time"/>
+        <result property="uid" column="uid"/>
+        <result property="status" column="status"/>
+        <result property="playMode" column="play_mode"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="checkStatus" column="check_status"/>
+        <result property="checker" column="checker"/>
+        <result property="checkRemark" column="check_remark"/>
+        <result property="interCut" column="inter_cut"/>
+        <result property="cycleWeek" column="cycle_week"/>
+        <result property="cycleMode" column="cycle_mode"/>
+        <result property="type" column="type" />
+    </resultMap>
+
+    <!--可根据设备来获取当前正常执行的发布
+     首先查询出在有效器期内的发布，
+     如果不是全体轮播则要过滤掉不在播放时间段内的发布，
+     如果是按星期轮播则要过滤星期条件
+     且要保证该节目对应设备上是在线状态-->
+    <select id="findByNow" resultMap="publishMap" >
+        select *
+        from publish
+        <where>
+            status = 1
+            <if test="date != null">
+                and #{date} >= start_time and #{date} &lt;= end_time
+                and ((play_mode = 2 and (cycle_mode = 1 or (cycle_mode = 2 and FIND_IN_SET(concat((select date_format(#{date},'%w')),''),cycle_week)))
+                <if test="time != null">
+                 and  (select count(*) from publish_play_time ppt where  #{time} > ppt.start_time and #{time} &lt; ppt.end_time and pid = publish.id) > 0
+                </if>
+                <if test="startTime != null and endTime != null">
+                 and
+                    (select count(*)
+                      from publish_play_time ppt
+                      where ((ppt.start_time &lt;= #{startTime} and  ppt.end_time > #{startTime})
+                              or (ppt.start_time &lt; #{endTime} and  ppt.end_time >= #{endTime}))
+                            and pid = publish.id)
+                    > 0
+                </if>
+                ) or play_mode = 1)
+            </if>
+            <if test="interCut != null">
+                and inter_cut = #{interCut}
+            </if>
+            <if test="did != null">
+                and (select count(*) from publish_device pd where pd.did = did and pd.pid = publish.id and status = 1) > 0
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findTimes" resultType="java.util.Date">
+        SELECT `time`
+        FROM
+             (SELECT pid,a.start_time AS `time` FROM publish_play_time a
+                                UNION
+              SELECT pid,b.end_time AS `time` FROM publish_play_time b)
+        AS t
+        LEFT JOIN publish p ON p.`id` = t.pid
+        <where>
+            status = 1
+            <if test="date != null">
+                and
+                (p.`cycle_mode` = 1 OR FIND_IN_SET(CONCAT((SELECT DATE_FORMAT(#{date},'%w')),''),cycle_week))
+                and #{date} >= start_time
+                and #{date} &lt;= end_time
+            </if>
+            <if test="did != null">
+                and (select count(*) from publish_device pd where pd.did = did and pd.pid = p.id and status = 1) > 0
+            </if>
+        </where>
+        group by `time`
+        ORDER BY `time`
+    </select>
+</mapper>

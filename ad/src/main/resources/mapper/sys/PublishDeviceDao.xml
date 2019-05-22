@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shengvideo.modules.sys.dao.PublishDeviceDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.shengvideo.modules.sys.entity.PublishDeviceEntity" id="publishDeviceMap">
+        <result property="id" column="id"/>
+        <result property="pid" column="pid"/>
+        <result property="did" column="did"/>
+        <result property="status" column="status"/>
+        <result property="synchronize" column="synchronize"/>
+        <association property="device" column="did" select="com.shengvideo.modules.sys.dao.StbDao.findById"/>
+    </resultMap>
+    <select id="findByPid" resultMap="publishDeviceMap">
+        select *
+        from publish_device where pid = #{value};
+    </select>
+    <select id="selectOnCount" resultType="int">
+        select count(*) from  publish_device where pid = #{value} and status = 1
+    </select>
+    <update id="offLine">
+        update publish_device set publish_device.status = 0 where did in
+        <foreach item="id" collection="dids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and pid = #{pid}
+    </update>
+    <delete id="clearAll">
+        delete from publish_device  where did = #{value};
+        delete from publish_device_theme  where did = #{value};
+    </delete>
+
+    <delete id="clearMobile">
+        delete from publish_device   where did = #{value}
+                                      and (select type from publish where id = publish_device.pid) = 2;
+        delete from publish_device_theme  where did = #{value}
+                                      and (select type from publish where id = publish_device_theme.pid) = 2;
+    </delete>
+</mapper>
